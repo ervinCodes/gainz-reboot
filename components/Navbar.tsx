@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/Link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL
 

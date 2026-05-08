@@ -13,7 +13,7 @@ export default function Home() {
                     Simplify your fitness goals
                 </div>
                 <div>
-                    <Link href='/signup' className='pr-3 hover:text-alloy-orange'>
+                    <Link href='/register' className='pr-3 hover:text-alloy-orange'>
                         REGISTER
                     </Link>
                     <Link href='/login' className='border border-alloy-orange rounded-2xl px-4 py-2 hover:text-alloy-orange'>
