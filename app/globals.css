@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@theme {
+  --color-space-cadet: #262A56;
+  --color-alloy-orange: #fca311;
+  --color-dun: #E3CCAE;
+
+  --font-family-oxygen: 'Oxygen', sans-serif;
+
+  --breakpoint-xs: 280px;
+}
+
 html, body, #root {
   box-sizing: border-box;
   height: 100%;
