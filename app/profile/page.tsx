@@ -73,7 +73,7 @@ export default function Profile() {
       <div className="text-white">Welcome {userName}!</div>
 
       <Link href='/createWorkout' className="text-white border border-alloy-orange rounded-2xl px-4 py-2 hover:text-alloy-orange">Create a Workout</Link>
-      <Link href='/myworkouts' className="text-white border border-alloy-orange rounded-2xl px-4 py-2 hover:text-alloy-orange">My Workouts</Link>
+      <Link href='/myWorkouts' className="text-white border border-alloy-orange rounded-2xl px-4 py-2 hover:text-alloy-orange">My Workouts</Link>
       {/* <div className="text-white">Diary</div> */}
 
       {/* Logout */}
