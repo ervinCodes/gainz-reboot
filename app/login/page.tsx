@@ -87,7 +87,11 @@ export default function Login() {
         </div>
         <div className='flex flex-col items-start'>
           <button onClick={handleSubmit} type="submit" className="border border-alloy-orange rounded-2xl px-4 py-2 hover:bg-alloy-orange">SUBMIT</button>
-          <Link href="/register" className="text-sm hover:text-alloy-orange pt-2">Dont have an account? Register</Link>
+          <div className='flex flex-row items-start pt-2 justify-center text-sm gap-1'>
+            <div>Don't have an account?</div>
+            <Link href="/register" className="hover:text-alloy-orange">Register</Link>
+          </div>
+
         </div>
 
       </form>

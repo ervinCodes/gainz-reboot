@@ -14,7 +14,7 @@ export default function Navbar() {
     useEffect(() => {
         const checkAuthStatus = async () => {
             try {
-                const response = await fetch(`${appUrl}/profile`, {
+                const response = await fetch(`${appUrl}/auth/profile`, {
                     credentials: 'include'
                 })
                 if (response.ok) {
