@@ -30,6 +30,7 @@ export default function CreateWorkout() {
 
     // States
     const [title, setTitle] = useState<string>('');
+    const [type, setType] = useState<string>('strength')
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -56,7 +57,7 @@ export default function CreateWorkout() {
             return response.json();
         })
         .then((data) => {
-            console.log(data.data)
+            console.log('Server Data:', data)
             setSearchResults(data.data);
         })
         .catch((error) => {
@@ -107,7 +108,8 @@ export default function CreateWorkout() {
                     credentials: 'include',
                     body: JSON.stringify({
                         title: title,
-                        exercises: exercises
+                        exercises: exercises,
+                        type: type
                     })
                 })
                 .then((response) => {
@@ -135,9 +137,6 @@ export default function CreateWorkout() {
         }
     }
 
-    // If the response is successful, redirect the user to the workout page
-    // If the response is not successful, display the error message to the user
-
 
     return (
         <div className="flex flex-col justify-center items-center space-y-4 mt-32 text-white relative">
@@ -149,12 +148,24 @@ export default function CreateWorkout() {
                     ))}
                 </div>
             )}
+            {/* Title */}
             <input
                 type="text"
                 placeholder="Workout Title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="bg-white border border-black px-3 py-2 rounded text-center text-black w-80"/>
+            
+            {/* Workout Type */}
+            <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className='bg-white border border-black w-80 rounded px-3 py-2 text-black text-center'
+                >
+                <option value="">-- Select Workout Type --</option>
+                <option value="strength">Strength</option>
+                <option value="hypertrophy">Hypertrophy</option>
+            </select>
 
             <div className="flex flex-row justify-center items-center space-x-2">
                 {/* Input Box for Search */}

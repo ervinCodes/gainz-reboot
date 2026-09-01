@@ -5,10 +5,27 @@ import { useRouter } from "next/navigation";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL;
 
+// Types
+interface Set {
+    setNumber: number
+    reps: number
+    weight: number
+    isChecked: boolean
+}
+
+interface Exercise {
+    _id: number
+    name: string
+    sets: Set[]
+    personalRecord: number
+}
+
 interface Workouts {
-    id: number
+    _id: number
     title: string
-    created_at: string
+    createdAt: string,
+    exercises: Exercise[]
+    type: string
 }
 
 export default function MyWorkouts() {
@@ -27,7 +44,6 @@ export default function MyWorkouts() {
                     credentials: 'include'
                 });
                 const data = await response.json();
-                console.log(data)
                 if (!response.ok) {
                     if (response.status === 401) {
                         router.push("/login");
@@ -35,6 +51,7 @@ export default function MyWorkouts() {
                     }
                     throw new Error(data.message || 'Network response was not ok');
                 }
+                console.log('Server Data:', data);
                 setWorkouts(data.workouts)
 
             } catch (error) {
@@ -47,7 +64,9 @@ export default function MyWorkouts() {
 
     return (
         <div className="flex flex-col justify-center items-center space-y-4 mt-32 text-white relative">
-            <h1>My Workouts</h1>
+            <div className="text-white py-5 text-4xl">
+                my <span className="text-alloy-orange">workouts</span>
+            </div>
             {errors.length > 0 && (
                 <div className="alert alert-danger">
                     {errors.map((error, index) => (
@@ -55,11 +74,21 @@ export default function MyWorkouts() {
                     ))}
                 </div>
             )}
-            <ul>
+            <ul className="w-full">
                 {workouts.map(workout => (
-                    <li key={workout.id}>
+                    <li key={workout._id} className="w-full flex justify-center items-center flex-col">
+                        
+                        {/* Workout Title */}
                         <h2>{workout.title}</h2>
-                        <p>{new Date(workout.created_at).toLocaleDateString('en-US')}</p>
+                        <p>{new Date(workout.createdAt).toLocaleDateString('en-US')}</p>
+                        <p>Type: {workout.type}</p>
+
+                        {workout.exercises.map(exercise => (
+                            <div key={exercise._id}>
+                                <h3>{exercise.name}</h3>
+                                <p>Personal Record: {exercise.personalRecord}</p>
+                            </div>
+                        ))}
                     </li>
                 ))}
             </ul>
