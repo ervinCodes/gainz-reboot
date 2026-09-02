@@ -5,63 +5,50 @@ import { useRouter } from "next/navigation";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL;
 
-    // Types
-    interface Set {
-        setNumber: number
-        reps: number
-        weight: number
-        isChecked: boolean
-    }
+// Types
+interface Set {
+    setNumber: number
+    reps: number
+    weight: number
+    isChecked: boolean
+}
 
-    interface Exercise {
-        name: string
-        sets: Set[]
-    }
+interface Exercise {
+    name: string
+    type: string
+    sets: Set[]
+}
 
-    interface SearchResult {
-        exerciseId: string
-        name: string
-        bodyParts: string[]
-        equipments: string[]
-    }
-
+interface SearchResult {
+    exerciseId: string
+    name: string
+    bodyParts: string[]
+    equipments: string[]
+}
 
 export default function CreateWorkout() {
 
-    // States
     const [title, setTitle] = useState<string>('');
-    const [type, setType] = useState<string>('strength')
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [errors, setErrors] = useState<string[]>([])
-    const [loading, setLoading] = useState<boolean>(false)
-
     const router = useRouter();
 
-    // Function to search for exercises
+    // Search exercises
     async function searchExercises() {
-        // Variable to hold search input
-        let searchInput = searchTerm.trim();
-
-        // Fetch the search result from the API
+        const searchInput = searchTerm.trim();
         fetch(`${appUrl}/exercises/search?name=${searchInput}`, {
             credentials: 'include'
         })
-        // Handle the response and update the searchResults state
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
         })
-        .then((data) => {
-            console.log('Server Data:', data)
-            setSearchResults(data.data);
+        .then(data => {
+            setSearchResults(data.data || []);
         })
-        .catch((error) => {
-            console.error('Error searching exercises:', error)
+        .catch(error => {
             if (error instanceof Error) {
                 setErrors([error.message])
             } else {
@@ -70,140 +57,188 @@ export default function CreateWorkout() {
         })
     }
 
-    // Function to add exercise from search
+    // Add exercise with default type of strength
     function addExerciseFromSearch(exercise: SearchResult) {
-        // Add exercise from search to the exercises state with default sets
-        const newExercise = {
+        const newExercise: Exercise = {
             name: exercise.name,
+            type: 'strength',
             sets: []
         }
-
-        // Add newExercise to the exercises state
-        setExercises([...exercises, newExercise]); 
-        setSearchResults([]); // Clear search results after adding exercise
-        setSearchTerm(''); // Clear search term after adding exercise
-
-        console.log('Added exercises:', newExercise)
+        setExercises([...exercises, newExercise]);
+        setSearchResults([]);
+        setSearchTerm('');
     }
 
-    // Function to remove exercise from exercises state
+    // Toggle exercise type
+    function toggleExerciseType(index: number) {
+        const updated = [...exercises]
+        updated[index].type = updated[index].type === 'strength' ? 'hypertrophy' : 'strength'
+        setExercises(updated)
+    }
+
+    // Remove exercise
     function removeExercise(index: number) {
-        const updateExercises = [...exercises]
-
-        updateExercises.splice(index, 1)
-        setExercises(updateExercises)
+        const updated = [...exercises]
+        updated.splice(index, 1)
+        setExercises(updated)
     }
 
-    // Function to submit workout
+    // Submit workout
     async function handleSubmit() {
-        //Validate that title and exercises array are not empty before making the API call
-        if(title.trim() !== '' && exercises.length > 0) {
-            try {
-                // Make an API call to create a new workout
-                fetch(`${appUrl}/workouts/create`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        title: title,
-                        exercises: exercises,
-                        type: type
+        if (title.trim() === '' || exercises.length === 0) {
+            setErrors(['Please add a title and at least one exercise']);
+            return
+        }
+
+        try {
+            fetch(`${appUrl}/workouts/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ title, exercises })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Failed to create workout')
                     })
-                })
-                .then((response) => {
-                    if (!response.ok) {
-                        return response.json().then(data => {
-                            console.log('Backend error:', data)  
-                            throw new Error(data.message || 'Network response was not ok')
-                        })
-                    }
-                    return response.json()
-                })
-                .then((data) => {
-                    router.push('/myWorkouts')
-                })
-            } catch (error) {
-                console.error('Error creating workout:', error);
-                if (error instanceof Error) {
-                    setErrors([error.message])
-                } else {
-                    setErrors(['An unknown error occurred']);
                 }
+                return response.json()
+            })
+            .then(() => {
+                router.push('/myWorkouts')
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                setErrors([error.message])
+            } else {
+                setErrors(['An unknown error occurred'])
             }
-        } else {
-            setErrors(['Please fill in all fields and add at least one exercise']);
         }
     }
 
-
     return (
-        <div className="flex flex-col justify-center items-center space-y-4 mt-32 text-white relative">
-            {/* Display error messages */}
+        <div className="min-h-screen text-white px-6 pt-28 pb-32 max-w-3xl mx-auto">
+
+            {/* Header */}
+            <div className="mb-10">
+                <p className="text-xs tracking-widest text-gray-500 mb-1 uppercase">New Session</p>
+                <h1 className="text-4xl font-bold">Create Workout</h1>
+            </div>
+
+            {/* Errors */}
             {errors.length > 0 && (
-                <div className="bg-red-500 text-white p-2 rounded">
-                    {errors.map((error, index) => (
-                        <p key={index}>{error}</p>
-                    ))}
+                <div className="bg-red-900 border border-red-600 text-red-200 p-3 rounded-lg mb-6 text-sm">
+                    {errors.map((error, index) => <p key={index}>{error}</p>)}
                 </div>
             )}
-            {/* Title */}
-            <input
-                type="text"
-                placeholder="Workout Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="bg-white border border-black px-3 py-2 rounded text-center text-black w-80"/>
-            
-            {/* Workout Type */}
-            <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className='bg-white border border-black w-80 rounded px-3 py-2 text-black text-center'
-                >
-                <option value="">-- Select Workout Type --</option>
-                <option value="strength">Strength</option>
-                <option value="hypertrophy">Hypertrophy</option>
-            </select>
 
-            <div className="flex flex-row justify-center items-center space-x-2">
-                {/* Input Box for Search */}
+            {/* Title Input */}
+            <div className="mb-6">
+                <label className="text-xs text-gray-500 uppercase tracking-widest mb-2 block">Workout Title</label>
                 <input
-                type="search"
-                placeholder="Search for exercises..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                        searchExercises()
-                    }
-                }}
-                className="bg-white border border-black px-3 py-2 rounded text-center text-black"/>
-                {/* Search Button */}
-                <button onClick={searchExercises} type="submit" className="border border-alloy-orange rounded-2xl px-4 py-2 hover:bg-alloy-orange">SEARCH</button>
+                    type="text"
+                    placeholder="e.g. Push Day, Upper Body..."
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-alloy-orange transition-colors"
+                />
+            </div>
 
-                { searchResults.length > 0 && (
-                    <div className="absolute top-28 bg-black border border-white rounded-lg p-2 w-80 max-h-60 overflow-y-auto z-10 cursor-pointer">
+            {/* Search */}
+            <div className="mb-8 relative">
+                <label className="text-xs text-gray-500 uppercase tracking-widest mb-2 block">Add Exercises</label>
+                <div className="flex gap-2">
+                    <input
+                        type="search"
+                        placeholder="Search exercises..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') searchExercises() }}
+                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-alloy-orange transition-colors"
+                    />
+                    <button
+                        onClick={searchExercises}
+                        className="border border-alloy-orange text-alloy-orange px-5 py-3 rounded-xl hover:bg-alloy-orange hover:text-black transition-colors text-sm font-medium"
+                    >
+                        Search
+                    </button>
+                </div>
+
+                {/* Search Results Dropdown */}
+                {searchResults.length > 0 && (
+                    <div className="absolute top-full mt-2 left-0 right-0 bg-zinc-900 border border-white/10 rounded-xl overflow-hidden z-10 max-h-60 overflow-y-auto shadow-xl">
                         {searchResults.map((exercise, index) => (
-                            <div key={index} className="flex flex-col justify-center space-y-2 hover:bg-gray-800 py-1 px-1" onClick={() => addExerciseFromSearch(exercise)}>{exercise.name}</div>
+                            <div
+                                key={index}
+                                className="px-4 py-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 text-sm transition-colors"
+                                onClick={() => addExerciseFromSearch(exercise)}
+                            >
+                                <p className="text-white">{exercise.name}</p>
+                                <p className="text-xs text-gray-500 mt-0.5">{exercise.bodyParts?.join(', ')}</p>
+                            </div>
                         ))}
                     </div>
                 )}
             </div>
-            <div className="flex flex-col justify-center items-center space-y-2">
-                { exercises.map((exercise, index) => (
-                    <div key={index} className="flex flex-row justify-center items-center space-x-2">
-                        <div className="flex flex-row justify-center items-center space-x-2 border border-white rounded-lg p-2 w-80">
-                            <div>{index + 1}.</div>
-                            <div>{exercise.name}</div>
-                        </div>
-                        <div className="cursor-pointer" onClick={() => removeExercise(index)}>x</div>
+
+            {/* Exercise List */}
+            {exercises.length > 0 && (
+                <div className="mb-8">
+                    <label className="text-xs text-gray-500 uppercase tracking-widest mb-3 block">
+                        Exercises — {exercises.length} added
+                    </label>
+                    <div className="space-y-3">
+                        {exercises.map((exercise, index) => (
+                            <div key={index} className="border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-gray-600 text-sm w-5">{index + 1}.</span>
+                                    <span className="text-sm text-white">{exercise.name}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    {/* Type Toggle */}
+                                    <button
+                                        onClick={() => toggleExerciseType(index)}
+                                        className={`text-xs px-3 py-1 rounded-full font-medium border transition-colors ${
+                                            exercise.type === 'strength'
+                                                ? 'bg-blue-900 text-blue-300 border-blue-700'
+                                                : 'bg-emerald-900 text-emerald-300 border-emerald-700'
+                                        }`}
+                                    >
+                                        {exercise.type}
+                                    </button>
+                                    {/* Remove */}
+                                    <button
+                                        onClick={() => removeExercise(index)}
+                                        className="text-gray-600 hover:text-red-400 transition-colors text-lg"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                ))  
-                }
+                </div>
+            )}
+
+            {/* Empty state */}
+            {exercises.length === 0 && (
+                <div className="border border-dashed border-white/10 rounded-xl py-12 text-center mb-8">
+                    <p className="text-gray-600 text-sm">Search for exercises to add them here</p>
+                </div>
+            )}
+
+            {/* Submit — fixed at bottom */}
+            <div className="fixed bottom-0 left-0 right-0 px-6 py-4 bg-black/80 backdrop-blur border-t border-white/10">
+                <div className="max-w-3xl mx-auto">
+                    <button
+                        onClick={handleSubmit}
+                        className="w-full bg-alloy-orange text-black font-bold py-3 rounded-full hover:opacity-90 transition-opacity"
+                    >
+                        Create Workout
+                    </button>
+                </div>
             </div>
-            <button onClick={handleSubmit} className="border border-alloy-orange rounded-2xl px-4 py-2 hover:bg-alloy-orange">CREATE WORKOUT</button>
         </div>
     )
 }
