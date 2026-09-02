@@ -22,6 +22,7 @@ interface LastWorkout {
 interface Exercise {
     _id: string
     name: string
+    type: string
     sets: Set[]
     personalRecord: number
     topSet: number
@@ -184,13 +185,6 @@ export default function WorkoutPage() {
                 </p>
                 <div className="flex items-center gap-3">
                     <h1 className="text-4xl font-bold">{workout.title}</h1>
-                    <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                        workout.type === 'strength'
-                            ? 'bg-blue-900 text-blue-300 border border-blue-700'
-                            : 'bg-emerald-900 text-emerald-300 border border-emerald-700'
-                    }`}>
-                        {workout.type}
-                    </span>
                 </div>
             </div>
 
@@ -206,25 +200,34 @@ export default function WorkoutPage() {
                 {exercises.map((exercise, exerciseIndex) => (
                     <div key={exercise._id} className="border border-white/10 rounded-2xl p-5">
 
-                        {/* Exercise Header */}
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h2 className="text-lg font-semibold">{exercise.name}</h2>
-                                <p className="text-xs text-alloy-orange mt-1">
-                                    PR: {exercise.topSet ?? exercise.personalRecord} lbs
-                                </p>
-                            </div>
-                            {exercise.lastWorkout && (
-                                <div className="text-right">
-                                    <p className="text-xs text-gray-500 mb-1">Last session</p>
-                                    {exercise.lastWorkout.sets.map((s, i) => (
-                                        <p key={i} className="text-xs text-gray-400">
-                                            {s.reps} reps @ {s.weight} lbs
-                                        </p>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+            {/* Exercise Header */}
+            <div className="flex justify-between items-start mb-4">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-lg font-semibold">{exercise.name}</h2>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            exercise.type === 'strength'
+                                ? 'bg-blue-900 text-blue-300 border border-blue-700'
+                                : 'bg-emerald-900 text-emerald-300 border border-emerald-700'
+                        }`}>
+                            {exercise.type}
+                        </span>
+                    </div>
+                    <p className="text-xs text-alloy-orange mt-1">
+                        PR: {exercise.topSet ?? exercise.personalRecord} lbs
+                    </p>
+                </div>
+                {exercise.lastWorkout && (
+                    <div className="text-right">
+                        <p className="text-xs text-gray-500 mb-1">Last session</p>
+                        {exercise.lastWorkout.sets.map((s, i) => (
+                            <p key={i} className="text-xs text-gray-400">
+                                {s.reps} reps @ {s.weight} lbs
+                            </p>
+                        ))}
+                    </div>
+                )}
+            </div>
 
                         {/* Set Headers */}
                         <div className="grid grid-cols-5 gap-2 mb-2 text-xs text-gray-500 px-1">

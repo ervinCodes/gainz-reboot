@@ -16,6 +16,7 @@ interface Set {
 interface Exercise {
     _id: string
     name: string
+    type: string
     sets: Set[]
     personalRecord: number
     topSet: number
@@ -26,7 +27,6 @@ interface Workouts {
     title: string
     createAt: string
     exercises: Exercise[]
-    type: string
 }
 
 export default function MyWorkouts() {
@@ -119,19 +119,12 @@ export default function MyWorkouts() {
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                                            workout.type === 'strength'
-                                                ? 'bg-blue-900 text-blue-300 border border-blue-700'
-                                                : 'bg-emerald-900 text-emerald-300 border border-emerald-700'
-                                        }`}>
-                                            {workout.type}
-                                        </span>
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault()
                                                 deleteWorkout(workout._id)
                                             }}
-                                            className="text-gray-600 hover:text-red-400 transition-colors text-lg"
+                                            className="text-gray-600 hover:text-red-400 transition-colors text-lg "
                                         >
                                             🗑
                                         </button>
@@ -145,7 +138,16 @@ export default function MyWorkouts() {
                                 <div className="space-y-2">
                                     {workout.exercises.map(exercise => (
                                         <div key={exercise._id} className="flex justify-between items-center">
-                                            <p className="text-sm text-gray-300">{exercise.name}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-sm text-gray-300">{exercise.name}</p>
+                                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                                    exercise.type === 'strength'
+                                                        ? 'bg-blue-900 text-blue-300 border border-blue-700'
+                                                        : 'bg-emerald-900 text-emerald-300 border border-emerald-700'
+                                                }`}>
+                                                    {exercise.type}
+                                                </span>
+                                            </div>
                                             <p className="text-sm text-alloy-orange font-medium">
                                                 {exercise.topSet ?? exercise.personalRecord} lbs
                                             </p>
