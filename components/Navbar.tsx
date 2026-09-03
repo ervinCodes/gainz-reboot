@@ -42,7 +42,7 @@ export default function Navbar() {
             <div className='max-w-6xl mx-auto flex flex-row justify-between items-center py-4 px-6 text-white'>
 
                 {/* Logo */}
-                <Link href='/' className='text-2xl font-bold hover:text-alloy-orange transition-colors'>
+                <Link href={isLoggedIn ? '/profile' : '/'} className='text-2xl font-bold hover:text-alloy-orange transition-colors'>
                     Gainz
                 </Link>
 
