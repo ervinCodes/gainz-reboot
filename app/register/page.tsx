@@ -1,107 +1,148 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
-const appUrl = process.env.NEXT_PUBLIC_APP_API_URL // variable created from the .env file
+const appUrl = process.env.NEXT_PUBLIC_APP_API_URL
 
-const Signup = () => {
-    // States for registration
-    const [email, setEmail] = useState('');
-    const [userName, setUserName] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirm, setConfirm] = useState('');
+export default function Signup() {
+    const [email, setEmail] = useState('')
+    const [userName, setUserName] = useState('')
+    const [password, setPassword] = useState('')
+    const [confirm, setConfirm] = useState('')
+    const [errors, setErrors] = useState<string[]>([])
+    const [submitting, setSubmitting] = useState(false)
+    const router = useRouter()
 
-    // Error states
-    const [submitted, setSubmitted] = useState(false);
-    const [errors, setErrors] = useState<string[]>([]);
-
-    // Navigation
-    let router = useRouter()
-
-    // Handlers for input changes
-    const handleEmail = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
-    const handleUserName = (e: React.ChangeEvent<HTMLInputElement>) => setUserName(e.target.value);
-    const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
-    const handleConfirm = (e: React.ChangeEvent<HTMLInputElement>) => setConfirm(e.target.value);
-
-    // Form submit
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
+        e.preventDefault()
         let temp: string[] = []
 
-        if(email === '' || userName === '' || password === '' || confirm === '') {
+        if (email === '' || userName === '' || password === '' || confirm === '') {
             temp.push('Please fill in all fields')
-        }else if(password !== confirm){
-            temp.push('Password fields do not match')
-        } else {
-            setSubmitted(true);
-            setErrors([]);
-
-            fetch(`${appUrl}/auth/signup`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    email: email,
-                    userName: userName,
-                    password: password
-                }),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include' // Ensures cookies are sent with the request
-            })
-                .then(res => {
-                    if(res.ok) {
-                        router.push('/profile')
-                    } else {
-                        return res.json().then(data => {
-                            throw new Error(data.message || 'Signup failed')
-                        })
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    temp.push(err.message || 'Signup failed');
-                    setErrors(temp);
-                })
-
+            setErrors(temp)
+            return
         }
-        setErrors(temp)
+
+        if (password !== confirm) {
+            temp.push('Passwords do not match')
+            setErrors(temp)
+            return
+        }
+
+        setSubmitting(true)
+        setErrors([])
+
+        fetch(`${appUrl}/auth/signup`, {
+            method: 'POST',
+            body: JSON.stringify({ email, userName, password }),
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        })
+        .then(res => {
+            if (res.ok) {
+                router.push('/profile')
+            } else {
+                return res.json().then(data => {
+                    throw new Error(data.message || 'Signup failed')
+                })
+            }
+        })
+        .catch(err => {
+            setErrors([err.message || 'Signup failed'])
+        })
+        .finally(() => {
+            setSubmitting(false)
+        })
     }
 
     return (
-        <main className="h-full w-full md:m-auto text-white flex justify-center">
-            <div className="h-full w-full flex justify-center items-center">
-                <section className="mt-5 md:w-[600px] w-full px-2 md:px-0">
-                    {errors.map((err,i) => {
-                        return <span key="{i}" className="text-red-600">{err}</span>
-                    })}
-                    <form className="mt-4 rounded-lg p-4 bg-black shadow-lg shadow-dun">
-                        <div className='text-2xl font-semibold pb-5'>Signup</div>
-                        <div className="mb-3 flex flex-col">
-                            <label htmlFor="userName" className="form-label">User Name</label>
-                            <input onChange={handleUserName} type="text" className="form-control rounded p-1 border bg-white text-black ring ring-gray-200 focus:ring-gray-500" id="userName" name="userName"></input>
-                        </div>
-                        <div className="mb-3 flex flex-col">
-                            <label htmlFor="exampleInputEmail1" className="form-label">Email Address</label>
-                            <input onChange={handleEmail} type="email" className="text-black bg-white form-control rounded p-1 border " id="exampleInputEmail1" aria-describedby="emailHelp" name="email"></input>
-                            <div id="emailHelp" className="form-text">We'll never share your email with anyone else.</div>
-                        </div>
-                        <div className="mb-3 flex flex-col">
-                            <label htmlFor="password" className="form-label">Password</label>
-                            <input onChange={handlePassword} type="password" className="form-control bg-white rounded p-1 border  text-black" id="password" name="password"></input>
-                        </div>
-                        <div className="mb-3 flex flex-col">
-                            <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
-                            <input type="password" className="form-control rounded p-1 border bg-white text-black" onChange={handleConfirm} id="confirmPassword" name="confirmPassword"></input>
-                        </div>
-                        <button type="submit" className="border border-alloy-orange rounded-2xl px-4 py-2 hover:bg-alloy-orange" onClick={handleSubmit}>SUBMIT</button>
-                    </form>
-                    
-                </section>
+        <div className="min-h-screen text-white flex items-center justify-center px-6">
+            <div className="w-full max-w-md">
+
+                {/* Header */}
+                <div className="mb-8">
+                    <p className="text-xs tracking-widest text-gray-500 uppercase mb-2">Welcome</p>
+                    <h1 className="text-4xl font-bold">Create Account</h1>
+                    <p className="text-gray-500 text-sm mt-2">
+                        Already have an account?{' '}
+                        <Link href='/login' className="text-alloy-orange hover:underline">
+                            Log in
+                        </Link>
+                    </p>
+                </div>
+
+                {/* Errors */}
+                {errors.length > 0 && (
+                    <div className="bg-red-900 border border-red-600 text-red-200 p-3 rounded-lg mb-6 text-sm">
+                        {errors.map((err, i) => <p key={i}>{err}</p>)}
+                    </div>
+                )}
+
+                {/* Form */}
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-xs text-gray-500 uppercase tracking-widest mb-2 block">
+                            Username
+                        </label>
+                        <input
+                            type="text"
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                            placeholder="e.g. ironlifter"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-alloy-orange transition-colors"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-xs text-gray-500 uppercase tracking-widest mb-2 block">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-alloy-orange transition-colors"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-xs text-gray-500 uppercase tracking-widest mb-2 block">
+                            Password
+                        </label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Min. 8 characters"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-alloy-orange transition-colors"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-xs text-gray-500 uppercase tracking-widest mb-2 block">
+                            Confirm Password
+                        </label>
+                        <input
+                            type="password"
+                            value={confirm}
+                            onChange={(e) => setConfirm(e.target.value)}
+                            placeholder="Repeat your password"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-alloy-orange transition-colors"
+                        />
+                    </div>
+
+                    <button
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        className="w-full bg-alloy-orange text-black font-bold py-3 rounded-full hover:opacity-90 transition-opacity disabled:opacity-50 mt-2"
+                    >
+                        {submitting ? 'Creating account...' : 'Create Account'}
+                    </button>
+                </div>
             </div>
-        </main>
+        </div>
     )
 }
-
-export default Signup
