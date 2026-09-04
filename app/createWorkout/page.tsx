@@ -152,7 +152,7 @@ export default function CreateWorkout() {
                 return response.json()
             })
             .then(() => {
-                router.push('/myworkouts')
+                router.push('/myWorkouts')
             })
         } catch (error) {
             if (error instanceof Error) {
