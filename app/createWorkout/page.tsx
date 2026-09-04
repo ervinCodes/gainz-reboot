@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL;
 
-// Types
 interface Set {
     setNumber: number
     reps: number
@@ -24,6 +23,7 @@ interface SearchResult {
     name: string
     bodyParts: string[]
     equipments: string[]
+    isCustom?: boolean
 }
 
 export default function CreateWorkout() {
@@ -33,11 +33,13 @@ export default function CreateWorkout() {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [errors, setErrors] = useState<string[]>([])
+    const [addingCustom, setAddingCustom] = useState<boolean>(false)
     const router = useRouter();
 
-    // Search exercises
     async function searchExercises() {
         const searchInput = searchTerm.trim();
+        if (!searchInput) return
+
         fetch(`${appUrl}/exercises/search?name=${searchInput}`, {
             credentials: 'include'
         })
@@ -57,7 +59,54 @@ export default function CreateWorkout() {
         })
     }
 
-    // Add exercise with default type of strength
+    async function addCustomExercise() {
+        if (!searchTerm.trim()) return
+
+        setAddingCustom(true)
+        try {
+            const response = await fetch(`${appUrl}/exercises/custom`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ name: searchTerm.trim() })
+            })
+
+            const data = await response.json()
+
+            if (response.status === 409) {
+                // Already exists — just add it to the workout
+                addExerciseFromSearch({
+                    exerciseId: 'custom',
+                    name: searchTerm.trim(),
+                    bodyParts: ['Custom'],
+                    equipments: [],
+                    isCustom: true
+                })
+                return
+            }
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to add custom exercise')
+            }
+
+            // Add to workout
+            addExerciseFromSearch({
+                exerciseId: data.exercise._id,
+                name: data.exercise.name,
+                bodyParts: [data.exercise.category],
+                equipments: [],
+                isCustom: true
+            })
+
+        } catch (error) {
+            if (error instanceof Error) {
+                setErrors([error.message])
+            }
+        } finally {
+            setAddingCustom(false)
+        }
+    }
+
     function addExerciseFromSearch(exercise: SearchResult) {
         const newExercise: Exercise = {
             name: exercise.name,
@@ -69,21 +118,18 @@ export default function CreateWorkout() {
         setSearchTerm('');
     }
 
-    // Toggle exercise type
     function toggleExerciseType(index: number) {
         const updated = [...exercises]
         updated[index].type = updated[index].type === 'strength' ? 'hypertrophy' : 'strength'
         setExercises(updated)
     }
 
-    // Remove exercise
     function removeExercise(index: number) {
         const updated = [...exercises]
         updated.splice(index, 1)
         setExercises(updated)
     }
 
-    // Submit workout
     async function handleSubmit() {
         if (title.trim() === '' || exercises.length === 0) {
             setErrors(['Please add a title and at least one exercise']);
@@ -106,7 +152,7 @@ export default function CreateWorkout() {
                 return response.json()
             })
             .then(() => {
-                router.push('/myWorkouts')
+                router.push('/myworkouts')
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -167,17 +213,62 @@ export default function CreateWorkout() {
 
                 {/* Search Results Dropdown */}
                 {searchResults.length > 0 && (
-                    <div className="absolute top-full mt-2 left-0 right-0 bg-zinc-900 border border-white/10 rounded-xl overflow-hidden z-10 max-h-60 overflow-y-auto shadow-xl">
-                        {searchResults.map((exercise, index) => (
+                    <div className="absolute top-full mt-2 left-0 right-0 bg-zinc-900 border border-white/10 rounded-xl overflow-hidden z-10 shadow-xl">
+                        <div className="max-h-60 overflow-y-auto">
+                            {searchResults.map((exercise, index) => (
+                                <div
+                                    key={index}
+                                    className="px-4 py-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 text-sm transition-colors flex justify-between items-center"
+                                    onClick={() => addExerciseFromSearch(exercise)}
+                                >
+                                    <div>
+                                        <p className="text-white">{exercise.name}</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                            {exercise.bodyParts?.join(', ')}
+                                        </p>
+                                    </div>
+                                    {exercise.isCustom && (
+                                        <span className="text-xs text-alloy-orange border border-alloy-orange px-2 py-0.5 rounded-full">
+                                            custom
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Add custom exercise option */}
+                        {searchTerm.trim() && (
                             <div
-                                key={index}
-                                className="px-4 py-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 text-sm transition-colors"
-                                onClick={() => addExerciseFromSearch(exercise)}
+                                onClick={addingCustom ? undefined : addCustomExercise}
+                                className="px-4 py-3 border-t border-white/10 flex items-center gap-2 cursor-pointer hover:bg-white/5 transition-colors"
                             >
-                                <p className="text-white">{exercise.name}</p>
-                                <p className="text-xs text-gray-500 mt-0.5">{exercise.bodyParts?.join(', ')}</p>
+                                <span className="text-alloy-orange text-lg">+</span>
+                                <div>
+                                    <p className="text-sm text-alloy-orange">
+                                        {addingCustom ? 'Adding...' : `Add "${searchTerm.trim()}" as custom exercise`}
+                                    </p>
+                                    <p className="text-xs text-gray-500">Saved for future workouts</p>
+                                </div>
                             </div>
-                        ))}
+                        )}
+                    </div>
+                )}
+
+                {/* Show add custom option even when no results */}
+                {searchResults.length === 0 && searchTerm.trim() && (
+                    <div className="absolute top-full mt-2 left-0 right-0 bg-zinc-900 border border-white/10 rounded-xl overflow-hidden z-10 shadow-xl">
+                        <div
+                            onClick={addingCustom ? undefined : addCustomExercise}
+                            className="px-4 py-3 flex items-center gap-2 cursor-pointer hover:bg-white/5 transition-colors"
+                        >
+                            <span className="text-alloy-orange text-lg">+</span>
+                            <div>
+                                <p className="text-sm text-alloy-orange">
+                                    {addingCustom ? 'Adding...' : `Add "${searchTerm.trim()}" as custom exercise`}
+                                </p>
+                                <p className="text-xs text-gray-500">Not in database? Save it for future workouts</p>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
@@ -196,7 +287,6 @@ export default function CreateWorkout() {
                                     <span className="text-sm text-white">{exercise.name}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    {/* Type Toggle */}
                                     <button
                                         onClick={() => toggleExerciseType(index)}
                                         className={`text-xs px-3 py-1 rounded-full font-medium border transition-colors ${
@@ -207,7 +297,6 @@ export default function CreateWorkout() {
                                     >
                                         {exercise.type}
                                     </button>
-                                    {/* Remove */}
                                     <button
                                         onClick={() => removeExercise(index)}
                                         className="text-gray-600 hover:text-red-400 transition-colors text-lg"

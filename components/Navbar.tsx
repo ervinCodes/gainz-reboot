@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL
 
@@ -10,6 +10,7 @@ export default function Navbar() {
     const [toggler, setToggler] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const router = useRouter()
+    const pathname = usePathname()
 
     useEffect(() => {
         const checkAuthStatus = async () => {
@@ -23,7 +24,7 @@ export default function Navbar() {
             }
         }
         checkAuthStatus()
-    }, [])
+    }, [pathname])
 
     async function handleLogout() {
         try {
