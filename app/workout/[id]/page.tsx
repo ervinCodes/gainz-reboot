@@ -145,7 +145,7 @@ export default function WorkoutPage() {
                 throw new Error(data.message || 'Failed to update workout')
             }
 
-            router.push('/myworkouts')
+            router.push('/myWorkouts')
 
         } catch (error) {
             console.error('Error submitting workout:', error)
