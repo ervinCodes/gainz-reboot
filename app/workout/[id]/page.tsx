@@ -69,7 +69,7 @@ export default function WorkoutPage() {
                     ...data.workout,
                     exercises: data.workout.exercises.map((exercise: Exercise) => ({
                         ...exercise,
-                        sets: exercise.sets.length > 0 ? exercise.sets : [
+                        sets: [
                             { setNumber: 1, reps: 0, weight: 0, isChecked: false }
                         ]
                     }))
