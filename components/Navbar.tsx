@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
+import { removeToken } from '@/lib/auth'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL
 
@@ -31,6 +32,7 @@ export default function Navbar() {
             await fetch(`${appUrl}/auth/logout`, {
                 credentials: 'include'
             })
+            removeToken() // clears token from localStorage
             setIsLoggedIn(false)
             router.push('/')
         } catch (error) {

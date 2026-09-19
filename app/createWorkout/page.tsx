@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getToken } from '@/lib/auth'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL;
 
@@ -41,7 +42,10 @@ export default function CreateWorkout() {
         if (!searchInput) return
 
         fetch(`${appUrl}/exercises/search?name=${searchInput}`, {
-            credentials: 'include'
+            credentials: 'include',
+            headers: {
+            ...(getToken() ? { 'Authorization': `Bearer ${getToken()}` } : {})
+            }
         })
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');

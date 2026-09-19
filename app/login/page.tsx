@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { saveToken } from '@/lib/auth'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL
 
@@ -32,12 +33,16 @@ export default function Login() {
         })
         .then(res => {
             if (res.ok) {
-                router.push('/profile')
+                return res.json()  // return the response data
             } else {
                 return res.json().then(data => {
                     throw new Error(data.message || 'Login failed')
                 })
             }
+        })
+        .then(data => {
+            saveToken(data.token)  // save token to localStorage
+            router.push('/profile')
         })
         .catch(err => {
             setErrors([err.message || 'Login failed'])

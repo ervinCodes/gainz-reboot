@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from 'next/link'
+import { getToken } from '@/lib/auth'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL;
 
@@ -12,10 +13,15 @@ export default function Profile() {
     const [email, setEmail] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    
+    
 
     useEffect(() => {
         fetch(`${appUrl}/auth/profile`, {
             credentials: "include",
+            headers: {
+            ...(getToken() ? { 'Authorization': `Bearer ${getToken()}` } : {})
+            }
         })
         .then((res) => {
             if (!res.ok) throw new Error("Unauthorized");
@@ -31,7 +37,8 @@ export default function Profile() {
             setError(error.message);
             router.push("/login");
         });
-    }, [router]);
+        }, [router]
+    );
 
     useEffect(() => {
         if (!loading && (email === "" || userName === "")) {

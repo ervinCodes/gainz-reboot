@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getToken } from '@/lib/auth'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL;
 
@@ -38,7 +39,10 @@ export default function MyWorkouts() {
         try {
             const response = await fetch(`${appUrl}/workouts/${id}`, {
                 method: 'DELETE',
-                credentials: 'include'
+                credentials: 'include',
+                headers: {
+                ...(getToken() ? { 'Authorization': `Bearer ${getToken()}` } : {})
+                }
             })
             if (response.ok) {
                 setWorkouts(workouts.filter(w => w._id !== id))

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { getToken } from '@/lib/auth'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL;
 
@@ -52,7 +53,10 @@ export default function WorkoutPage() {
         async function fetchWorkout() {
             try {
                 const response = await fetch(`${appUrl}/workouts/${id}`, {
-                    credentials: 'include'
+                    credentials: 'include',
+                    headers: {
+                    ...(getToken() ? { 'Authorization': `Bearer ${getToken()}` } : {})
+                    }
                 });
                 const data = await response.json();
 
