@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { removeToken } from '@/lib/auth'
+import { getToken } from '@/lib/auth'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL
 
@@ -16,8 +17,18 @@ export default function Navbar() {
     useEffect(() => {
         const checkAuthStatus = async () => {
             try {
+
+                const token = getToken()
+                if (!token) {
+                    setIsLoggedIn(false)
+                    return
+                }
+                
                 const response = await fetch(`${appUrl}/auth/profile`, {
-                    credentials: 'include'
+                    credentials: 'include',
+                    headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    }
                 })
                 setIsLoggedIn(response.ok)
             } catch (error) {

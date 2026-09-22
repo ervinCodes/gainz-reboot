@@ -17,12 +17,14 @@ export default function Profile() {
     
 
     useEffect(() => {
+        const token = getToken()  // ← get token from localStorage
+
         fetch(`${appUrl}/auth/profile`, {
             credentials: "include",
             headers: {
-            ...(getToken() ? { 'Authorization': `Bearer ${getToken()}` } : {})
-            }
-        })
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})  // ← send token
+                }
+            })
         .then((res) => {
             if (!res.ok) throw new Error("Unauthorized");
             return res.json();
@@ -41,10 +43,10 @@ export default function Profile() {
     );
 
     useEffect(() => {
-        if (!loading && (email === "" || userName === "")) {
+        if (!loading && !error && (email === "" || userName === "")) {
             router.push("/login");
         }
-    }, [loading, email, userName, router]);
+    }, [loading, email, userName, router, error]);
 
     async function handleLogout() {
         await fetch(`${appUrl}/auth/logout`, {
