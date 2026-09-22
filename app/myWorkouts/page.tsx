@@ -28,6 +28,7 @@ interface Workouts {
     title: string
     createAt: string
     exercises: Exercise[]
+    completedCount: number
 }
 
 export default function MyWorkouts() {
@@ -121,6 +122,10 @@ export default function MyWorkouts() {
                                                 year: 'numeric'
                                             })}
                                         </p>
+                                        <p className="text-xs text-alloy-orange">
+                                            {workout.completedCount > 0 ? `Completed ${workout.completedCount}x` : 'Not yet completed'}
+                                        </p>
+
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button

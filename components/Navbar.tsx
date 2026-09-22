@@ -23,7 +23,7 @@ export default function Navbar() {
                     setIsLoggedIn(false)
                     return
                 }
-                
+
                 const response = await fetch(`${appUrl}/auth/profile`, {
                     credentials: 'include',
                     headers: {
@@ -64,7 +64,7 @@ export default function Navbar() {
                 <div className='hidden md:flex flex-row items-center gap-6 text-sm'>
                     {isLoggedIn ? (
                         <>
-                            <Link href='/myworkouts' className='text-gray-300 hover:text-white transition-colors'>
+                            <Link href='/myWorkouts' className='text-gray-300 hover:text-white transition-colors'>
                                 My Workouts
                             </Link>
                             <Link href='/createWorkout' className='text-gray-300 hover:text-white transition-colors'>
