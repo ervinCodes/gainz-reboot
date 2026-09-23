@@ -227,9 +227,6 @@ export default function CreateWorkout() {
                                 >
                                     <div>
                                         <p className="text-white">{exercise.name}</p>
-                                        <p className="text-xs text-gray-500 mt-0.5">
-                                            {exercise.bodyParts?.join(', ')}
-                                        </p>
                                     </div>
                                     {exercise.isCustom && (
                                         <span className="text-xs text-alloy-orange border border-alloy-orange px-2 py-0.5 rounded-full">
