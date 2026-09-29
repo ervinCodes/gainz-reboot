@@ -38,6 +38,14 @@ interface Workout {
     createAt: string
 }
 
+interface SearchResult {
+    exerciseId: string
+    name: string
+    bodyParts: string[]
+    equipments: string[]
+    isCustom?: boolean
+}
+
 export default function WorkoutPage() {
     const { id } = useParams();
     const router = useRouter();
@@ -47,6 +55,9 @@ export default function WorkoutPage() {
     const [loading, setLoading] = useState<boolean>(true)
     const [errors, setErrors] = useState<string[]>([])
     const [submitting, setSubmitting] = useState<boolean>(false)
+    const [ replacingIndex, setReplacingIndex] = useState<number | null>(null)
+    const [replaceSearch, setReplaceSearch] = useState<string>('')
+    const [replaceResults, setReplaceResults] = useState<SearchResult[]>([])
 
     // Fetch workout
     useEffect(() => {
@@ -91,6 +102,39 @@ export default function WorkoutPage() {
         }
         fetchWorkout()
     }, [])
+
+    // Search Function for replacing exercises
+    async function searchReplacement() {
+        if(!replaceSearch.trim()) return
+        try {
+            const token = getToken()
+            const response = await fetch(`${appUrl}/exercises/search?name=${replaceSearch.trim()}`, {
+                credentials: 'include',
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            })
+            const data = await response.json()
+            setReplaceResults(data.data || [])
+        } catch (error) {
+            console.error('Error searching exercises:', error)
+        }
+    } 
+
+    // Replace function for replacing an exercise in the workout
+    function replaceExercise(exercise: SearchResult) {
+        if (replacingIndex === null) return
+        const updated = [...exercises]
+        updated[replacingIndex] = {
+            ...updated[replacingIndex],
+            name: exercise.name,
+            sets: [{ setNumber: 1, reps: 0, weight: 0, isChecked: false }],
+        }
+        setExercises(updated)
+        setReplacingIndex(null)
+        setReplaceSearch('')
+        setReplaceResults([])
+    }
 
     // Update a specific set field
     function updateSet(exerciseIndex: number, setIndex: number, field: keyof Set, value: number | boolean) {
@@ -221,16 +265,29 @@ export default function WorkoutPage() {
                         PR: {exercise.topSet ?? exercise.personalRecord} lbs
                     </p>
                 </div>
-                {exercise.lastWorkout && (
-                    <div className="text-right">
-                        <p className="text-xs text-gray-500 mb-1">Last session</p>
-                        {exercise.lastWorkout.sets.map((s, i) => (
-                            <p key={i} className="text-xs text-gray-400">
-                                {s.reps} reps @ {s.weight} lbs
-                            </p>
-                        ))}
-                    </div>
-                )}
+                <div className="flex flex-col items-end gap-2">
+                    {/* Replace button */}
+                    <button
+                        onClick={() => {
+                            setReplacingIndex(exerciseIndex)
+                            setReplaceSearch('')
+                            setReplaceResults([])
+                        }}
+                        className="text-xs text-gray-500 hover:text-alloy-orange transition-colors cursor-pointer"
+                    >
+                        Replace
+                    </button>
+                    {exercise.lastWorkout && (
+                        <div className="text-right">
+                            <p className="text-xs text-gray-500 mb-1">Last session</p>
+                            {exercise.lastWorkout.sets.map((s, i) => (
+                                <p key={i} className="text-xs text-gray-400">
+                                    {s.reps} reps @ {s.weight} lbs
+                                </p>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
                         {/* Set Headers */}
@@ -319,6 +376,67 @@ export default function WorkoutPage() {
                     </button>
                 </div>
             </div>
+
+            {/* Replace Exercise Modal */}
+            {replacingIndex !== null && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur z-50 flex items-center justify-center px-6">
+                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 w-full max-w-md">
+                        
+                        {/* Modal Header */}
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-semibold text-white">Replace Exercise</h2>
+                            <button
+                                onClick={() => {
+                                    setReplacingIndex(null)
+                                    setReplaceSearch('')
+                                    setReplaceResults([])
+                                }}
+                                className="text-gray-500 hover:text-white transition-colors"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <p className="text-xs text-gray-500 mb-4">
+                            Replacing: <span className="text-alloy-orange">{exercises[replacingIndex]?.name}</span>
+                        </p>
+
+                        {/* Search Input */}
+                        <div className="flex gap-2 mb-4">
+                            <input
+                                type="text"
+                                placeholder="Search exercises..."
+                                value={replaceSearch}
+                                onChange={(e) => setReplaceSearch(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') searchReplacement() }}
+                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-alloy-orange transition-colors text-sm"
+                                autoFocus
+                            />
+                            <button
+                                onClick={searchReplacement}
+                                className="border border-alloy-orange text-alloy-orange px-4 py-3 rounded-xl hover:bg-alloy-orange hover:text-black transition-colors text-sm"
+                            >
+                                Search
+                            </button>
+                        </div>
+
+                        {/* Search Results */}
+                        {replaceResults.length > 0 && (
+                            <div className="max-h-60 overflow-y-auto space-y-1">
+                                {replaceResults.map((exercise, index) => (
+                                    <div
+                                        key={index}
+                                        onClick={() => replaceExercise(exercise)}
+                                        className="px-4 py-3 hover:bg-white/5 cursor-pointer rounded-lg text-sm text-white transition-colors"
+                                    >
+                                        {exercise.name}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
