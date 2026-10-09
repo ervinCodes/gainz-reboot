@@ -55,9 +55,10 @@ export default function WorkoutPage() {
     const [loading, setLoading] = useState<boolean>(true)
     const [errors, setErrors] = useState<string[]>([])
     const [submitting, setSubmitting] = useState<boolean>(false)
-    const [ replacingIndex, setReplacingIndex] = useState<number | null>(null)
+    const [replacingIndex, setReplacingIndex] = useState<number | null>(null)
     const [replaceSearch, setReplaceSearch] = useState<string>('')
     const [replaceResults, setReplaceResults] = useState<SearchResult[]>([])
+    const [addingCustom, setAddingCustom] = useState<boolean>(false)
 
     // Fetch workout
     useEffect(() => {
@@ -172,6 +173,40 @@ export default function WorkoutPage() {
             setNumber: i + 1
         }))
         setExercises(updated)
+    }
+
+    // Add a custom exercise and replace the current one
+    async function addCustomAndReplace() {
+        if (!replaceSearch.trim()) return
+        setAddingCustom(true)
+        try {
+            const token = getToken()
+            const response = await fetch(`${appUrl}/exercises/custom`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                credentials: 'include',
+                body: JSON.stringify({ name: replaceSearch.trim()})
+            })
+
+            const data = await response.json()
+
+            const exerciseName = response.status === 409 ? replaceSearch.trim() : data.exercise.name
+
+            replaceExercise({
+                exerciseId: data.exercise?._id || 'custom',
+                name: exerciseName,
+                bodyParts: [],
+                equipments: [],
+                isCustom: true
+            })
+        } catch (error) {
+            console.error('Error adding custom exercise:', error)
+        } finally {
+            setAddingCustom(false)
+        }
     }
 
     // Submit workout
@@ -432,6 +467,21 @@ export default function WorkoutPage() {
                                         {exercise.name}
                                     </div>
                                 ))}
+                            </div>
+                        )}
+                        {/* Add custom exercise option */}
+                        {replaceSearch.trim() && (
+                            <div
+                                onClick={addingCustom ? undefined : addCustomAndReplace}
+                                className="px-4 py-3 border-t border-white/10 flex items-center gap-2 cursor-pointer hover:bg-white/5 transition-colors"
+                            >
+                                <span className="text-alloy-orange text-lg">+</span>
+                                <div>
+                                    <p className="text-sm text-alloy-orange">
+                                        {addingCustom ? 'Adding...' : `Add "${replaceSearch.trim()}" as custom exercise`}
+                                    </p>
+                                    <p className="text-xs text-gray-500">Saved for future workouts</p>
+                                </div>
                             </div>
                         )}
                     </div>
