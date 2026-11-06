@@ -73,6 +73,9 @@ export default function Navbar() {
                             <Link href='/profile' className='text-gray-300 hover:text-white transition-colors'>
                                 Profile
                             </Link>
+                            <Link href='/progress' className='text-gray-300 hover:text-white transition-colors'>
+                                Progress
+                            </Link>
                             <button
                                 onClick={handleLogout}
                                 className='border border-red-600 text-red-400 px-4 py-1.5 rounded-full text-sm hover:bg-red-600 hover:text-white transition-colors'
