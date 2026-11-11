@@ -120,6 +120,9 @@ export default function Navbar() {
                             <Link href='/profile' onClick={() => setToggler(false)} className='text-gray-300 hover:text-white transition-colors'>
                                 Profile
                             </Link>
+                            <Link href='/progress' className='text-gray-300 hover:text-white transition-colors'>
+                                Progress
+                            </Link>
                             <button
                                 onClick={handleLogout}
                                 className='text-left text-red-400 hover:text-red-300 transition-colors'
