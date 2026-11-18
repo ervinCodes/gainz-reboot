@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getToken } from '@/lib/auth'
+import BackLink from '@/components/BackLink'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL;
 
@@ -59,6 +60,11 @@ export default function WorkoutPage() {
     const [replaceSearch, setReplaceSearch] = useState<string>('')
     const [replaceResults, setReplaceResults] = useState<SearchResult[]>([])
     const [addingCustom, setAddingCustom] = useState<boolean>(false)
+
+    // Check if any exercise has logged data (reps, weight, or checked)
+    const hasLoggedData = exercises.some(ex =>
+        ex.sets.some(s => s.reps > 0 || s.weight > 0 || s.isChecked)
+    )
 
     // Fetch workout
     useEffect(() => {
@@ -258,7 +264,11 @@ export default function WorkoutPage() {
 
     return (
         <div className="min-h-screen text-white px-6 pt-28 pb-32 max-w-3xl mx-auto">
-
+            <BackLink
+                href="/myWorkouts"
+                label="My Workouts"
+                confirmMessage={hasLoggedData ? "You have unsaved data. Are you sure you want to leave?" : undefined}
+            />
             {/* Header */}
             <div className="mb-8">
                 <p className="text-xs tracking-widest text-gray-500 mb-1 uppercase">

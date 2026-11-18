@@ -65,7 +65,6 @@ export default function Profile() {
 
     return (
         <div className="min-h-screen text-white px-6 pt-28 pb-16 max-w-3xl mx-auto">
-
             {/* Header */}
             <div className="mb-10">
                 <p className="text-xs tracking-widest text-gray-500 mb-1 uppercase">Account</p>

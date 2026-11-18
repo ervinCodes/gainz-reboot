@@ -111,7 +111,7 @@ export default function Navbar() {
                 <div className='md:hidden bg-black/95 border-t border-white/10 px-6 py-4 flex flex-col gap-4 text-sm'>
                     {isLoggedIn ? (
                         <>
-                            <Link href='/myworkouts' onClick={() => setToggler(false)} className='text-gray-300 hover:text-white transition-colors'>
+                            <Link href='/myWorkouts' onClick={() => setToggler(false)} className='text-gray-300 hover:text-white transition-colors'>
                                 My Workouts
                             </Link>
                             <Link href='/createWorkout' onClick={() => setToggler(false)} className='text-gray-300 hover:text-white transition-colors'>

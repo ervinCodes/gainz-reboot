@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getToken } from '@/lib/auth'
+import BackLink from '@/components/BackLink'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_API_URL;
 
@@ -78,7 +79,7 @@ export default function MyWorkouts() {
 
     return (
         <div className="min-h-screen text-white px-6 pt-28 pb-16 max-w-3xl mx-auto">
-
+            <BackLink href="/profile" label="Profile" />
             {/* Page Header */}
             <div className="mb-10">
                 <p className="text-xs tracking-widest text-gray-500 mb-1 uppercase">Training Log</p>
